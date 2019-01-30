@@ -1,5 +1,5 @@
 <template>
-    <div class="content">
+    <div class="content" v-if="track">
         <p>
             <img :src="track.album.images[0].url">
         </p>
@@ -21,7 +21,6 @@ export default {
     },
     created () {
         this.$bus.$on('set-track',(track) => {
-            console.log(track);
             this.track = track
         })
     }

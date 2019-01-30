@@ -4,12 +4,11 @@
       <header class="nav">
         <div class="container">
           <div class="nav-left">
-            <div class="nav-item">
-                Strong
-            </div>
+            <div class="nav-item">Plazi Music</div>
           </div>
           <div class="nav-right nav-menu">
-            Canciones que estan buenisimas
+            <router-link class="nav-items" to="search">Buscar</router-link>
+            <router-link class="nav-items" to="about">Nosotros</router-link>
           </div>
         </div>
       </header>
