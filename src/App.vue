@@ -1,90 +1,114 @@
 <template>
   <div id="app">
-    <h1>{{ msg }}</h1>
-    <h2>Essential Links 123</h2>
-    <select v-model="selectPais">
-      <option v-for="pais in paises" :value="pais.value">{{pais.name}}</option>
-    </select>
-    <spinner v-show="loading"></spinner>
-    <ul>
-      <artista v-for="artista in artistas" v-bind:artista="artista" :key="artista.mbid"></artista>
-    </ul>
+    <pm-header></pm-header>
+    <pm-notification v-show="showNotification">
+      <p slot="body">No se encontraron resultados</p>
+    </pm-notification>
+    <section class="section">
+      <nav class="nav">
+        <div class="container " v-show="!isLoading">
+          <div class="field has-addons">
+            <p class="control">
+              <input type="text" class="input is-large" placeholder="Buscar Canciones" v-model="searchQuery">
+            </p>
+            <p class="control">
+              <a class="button is-info is-large" v-on:click="search">Buscar</a>
+              <a class="button is-danger is-large" v-on:click="clear">Borrar</a>
+            </p>
+          </div>
+        </div>
+        <Spinner v-show="isLoading"></Spinner>
+        <div v-show="!isLoading" class="container results">
+          <p class="is-4">{{searchMessage}}</p>
+          <div class="columns is-multiline">
+            <div class="column is-one-quarter" v-for="t in tracks">
+              <pm-track 
+                :class="{'is-active': t.id == selectedTrack}"
+                :track="t" 
+                @select="setSelectedTrack"></pm-track>
+            </div>
+          </div>
+        </div>
+      </nav>
+    </section>
+    
+    <pm-footer></pm-footer>
   </div>
 </template>
 
 <script>
-import Spinner from './components/Spinner.vue'
-import Artista from './components/Artist.vue'
-import getArtistas from './api'
-
+import trackService from '@/services/track'
+import Spinner from '@/components/Spinner.vue'
+import pmFooter from '@/components/layout/Footer.vue'
+import pmHeader from '@/components/layout/Header.vue'
+import pmTrack from '@/components/Track.vue'
+import pmNotification from '@/components/shared/Notification.vue'
 export default {
   name: 'app',
+  components: {
+    Spinner,
+    pmFooter,
+    pmHeader,
+    pmTrack,
+    pmNotification
+  },
   data () {
     return {
-      msg: 'welcome to platziMusic',
-      artistas : [],
-      paises : [
-        { name: 'Mexico', value: "mexico"},
-        { name: 'España', value: "spain"}
-      ],
-      selectPais:"spain",
-      loading: true
+      isLoading: false,
+      showNotification : false,
+      searchQuery: '',
+      tracks: [],
+      selectedTrack:''
     }
   },
-  components :{
-    Artista,
-    Spinner
+  created () {
+    console.log('...created')
+  },
+  mounted () {
+    console.log('...mounted')
   },
   methods: {
-    refrescarArtistas() {
-      const self = this
-      this.loading = true
-      getArtistas(this.selectPais)
-        .then((result) => {
-          console.log(result)
-          self.artistas = result.artist
-          self.loading = false
-        }).catch((err) => {
-            console.log(err);
-        });
+    search () {
+      this.isLoading = true
+      if (!this.searchQuery) {return}
+      trackService.search(this.searchQuery)
+      .then((result) => {
+        this.showNotification = result.tracks.total === 0
+        this.tracks = result.tracks.items
+        this.isLoading = false
+      })
+    },
+    clear () {
+      this.searchQuery = ''
+      this.tracks = ''
+    },
+    setSelectedTrack (id) {
+      this.selectedTrack = id
     }
   },
-  mounted: function() {
-    this.refrescarArtistas()
+  computed: {
+    searchMessage() {
+      return `${this.tracks.length} Registros encontrados`
+    }
   },
-  watch: {
-    selectPais: function () {
-      this.refrescarArtistas()
+  watch:{
+    showNotification () {
+      if (this.showNotification) {
+        setTimeout(() => {
+          this.showNotification = false
+        }, 3000);
+      }
     }
   }
 }
 </script>
 
-<style>
-#app {
-  font-family: 'Avenir', Helvetica, Arial, sans-serif;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  text-align: center;
-  color: #2c3e50;
-  margin-top: 60px;
+<style lang="scss">
+@import '../node_modules/bulma/bulma.sass';
+.results {
+  margin: 40px;
 }
-
-h1, h2 {
-  font-weight: normal;
-}
-
-ul {
-  list-style-type: none;
-  padding: 0;
-}
-
-li {
-  display: inline-block;
-  margin: 0 10px;
-}
-
-a {
-  color: #42b983;
+.is-active {
+  border: 3px #23d160 solid;
 }
 </style>

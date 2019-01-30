@@ -12,9 +12,6 @@ export default {
 }
 </script>
 <style>
-li.artista {
-    display: block;
-    margin:10px;
-}
+
 </style>
 
